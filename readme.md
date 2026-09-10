@@ -35,9 +35,9 @@ cd doubao-asr
 
 ### 2. 获取 API Key
 
-1. 打开火山引擎控制台 → 语音技术(语音合成与识别):https://console.volcengine.com/speech/
-2. 开通「流式语音识别(大模型)」服务(按量计费)。
-3. 进入「应用管理」创建应用,复制其中的 **API Key**。
+1. 打开豆包语音 → [服务管理](https://console.volcengine.com/speech/new/setting/activate?ResourceID=volc.service_type.10074&projectName=default)
+2. 开通「流式语音识别(2.0)」。
+3. 进入左下角的「API key」新建一个 **API Key**。
 4. 资源 ID(`Resource ID`)用默认的 `volc.seedasr.sauc.duration` 即可(新版控制台鉴权)。
 
 > 本工具用的是新版控制台的 **X-Api-Key** 鉴权,只需要 API Key + Resource ID,
