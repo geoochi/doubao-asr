@@ -2,7 +2,7 @@
 
 把豆包(火山引擎)语音识别接入 Omarchy 语音听写的工具。
 
-> 密钥只放在仓库根目录的 `.env`(已 gitignore),**不要提交到仓库**。
+> 密钥只放在仓库根目录的 `.env`(已 gitignore,建议 `chmod 600`),**不要提交到仓库**。
 
 ## Omarchy 语音输入接入(dictate.py)
 
@@ -46,7 +46,7 @@
 - `DOUBAO_MODE`:`type`(默认,wtype 打字)或 `clipboard`(wl-copy)
 - `DOUBAO_FLUSH_DELAY_MS`:`stream` 模式的打字防抖,越大越不容易看到尾部回退
 - `DOUBAO_DEVICE`:默认 `default`(跟随系统默认输入源),也可指定 pulse 源名
-- `DOUBAO_SAVE_AUDIO`:把每次录音存成 WAV(`~/.local/state/doubao-dictate/sessions/`,留最近 20 个)
+- `DOUBAO_SAVE_AUDIO`:把每次录音存成 WAV(`~/.local/state/doubao-dictate/sessions/`,留最近 20 个);默认 `false`
 
 ### 运维
 
@@ -58,7 +58,8 @@ journalctl --user -u doubao-dictate -f     # 实时日志
 
 ### 离线测试 / 复现(不占用麦克风)
 
-先用一次真实听写(会存下 WAV),再回放对比:
+先在 `.env` 里设 `DOUBAO_SAVE_AUDIO=true` 并 `systemctl --user restart doubao-dictate`,
+做一次真实听写让它存下 WAV,再回放对比:
 
 ```
 # 用保存下来的录音回放,比较 batch / stream 两种识别
@@ -70,12 +71,14 @@ DOUBAO_URL=wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_nostream \
   .venv/bin/python dictate.py transcribe "$f" --print --fast           # 非流式(整段)
 ```
 
+(用完记得把 `DOUBAO_SAVE_AUDIO` 改回 `false`。)
+
 ### 故障排查
 
 - **没有输出**:确认系统存在麦克风输入源:`pactl list short sources`。
   若只有 `*.monitor`,说明当前没有麦克风设备,需要接入麦克风并把
-  系统默认输入源切到它(或改 `audio.device`)。
-- **识别重复/零碎**:改回 `audio.recognize = "batch"`(默认),用非流式端点整段识别。
+  系统默认输入源切到它(或改 `DOUBAO_DEVICE`)。
+- **识别重复/零碎**:确认 `DOUBAO_RECOGNIZE=batch`(默认),用非流式端点整段识别。
 - **服务起不来/无响应**:`systemctl --user status doubao-dictate`,看日志。
 - **不打字**:确认守护进程环境里有 `WAYLAND_DISPLAY`
   (`systemctl --user show-environment | grep WAYLAND_DISPLAY`),以及 `wtype` 已安装。
