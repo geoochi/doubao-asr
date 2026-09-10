@@ -1,0 +1,45 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goarch: amd64
+            asset: doubao-dictate-linux-amd64
+          - goarch: arm64
+            asset: doubao-dictate-linux-arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+
+      - name: Build
+        env:
+          CGO_ENABLED: "0"
+          GOOS: linux
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          go vet ./...
+          go test ./...
+          go build -trimpath -ldflags="-s -w" -o "${{ matrix.asset }}" .
+
+      - name: Checksum
+        run: sha256sum "${{ matrix.asset }}" > "${{ matrix.asset }}.sha256"
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ matrix.asset }}
+            ${{ matrix.asset }}.sha256
