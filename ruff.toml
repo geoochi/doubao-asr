@@ -1,7 +1,0 @@
-line-length = 100
-
-[format]
-quote-style = "single"
-
-[lint]
-ignore = ["TRY002", "BLE001"]

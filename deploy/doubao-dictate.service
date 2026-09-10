@@ -4,7 +4,7 @@ PartOf=graphical-session.target
 After=graphical-session.target pipewire-pulse.service
 
 [Service]
-# The wrapper is created during install; see the README "第一次使用" section.
+# %h/.local/bin/doubao-dictate is the compiled binary (see the README).
 ExecStart=%h/.local/bin/doubao-dictate daemon
 Restart=on-failure
 RestartSec=3
