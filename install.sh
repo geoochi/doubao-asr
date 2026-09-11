@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 #
-# One-click installer for doubao-asr.
+# One-click installer for omarchy-doubao-asr.
 #
 # Downloads the prebuilt `doubao-dictate` binary, sets up its config, installs
 # the systemd user service and adds the Omarchy/Hyprland hotkey binding.
 # Everything is user-scoped (no sudo) and the script is safe to re-run: an
 # existing .env is never overwritten and the hotkey block is added only once.
 #
-#   curl -fsSL https://raw.githubusercontent.com/geoochi/doubao-asr/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/geoochi/omarchy-doubao-asr/main/install.sh | bash
 #
 # Run with --help for options.
 
 set -euo pipefail
 
-REPO="geoochi/doubao-asr"
+REPO="geoochi/omarchy-doubao-asr"
 BIN_DIR="${HOME}/.local/bin"
 BIN="${BIN_DIR}/doubao-dictate"
 CONF_DIR="${HOME}/.config/doubao-dictate"
@@ -29,7 +29,7 @@ for arg in "$@"; do
   case "$arg" in
     -h | --help)
       cat <<'USAGE'
-doubao-asr 一键安装脚本
+omarchy-doubao-asr 一键安装脚本
 
 用法:
   install.sh            安装或升级(可重复执行,幂等)

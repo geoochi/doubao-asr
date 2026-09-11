@@ -1,4 +1,4 @@
-module github.com/geoochi/doubao-asr
+module github.com/geoochi/omarchy-doubao-asr
 
 go 1.23
 
