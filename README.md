@@ -1,5 +1,7 @@
 # omarchy-doubao-asr
 
+https://github.com/user-attachments/assets/55a79a79-5133-4646-84c1-9bbc3b6e98e6
+
 在 Omarchy / Hyprland 上用**豆包(火山引擎)语音识别**做语音听写:按一下热键开始说话,
 再按一下停止,识别结果用 `wtype` **直接打进当前光标位置**。
 
