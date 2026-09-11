@@ -8,16 +8,8 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - goarch: amd64
-            asset: doubao-dictate-linux-amd64
-          - goarch: arm64
-            asset: doubao-dictate-linux-arm64
     steps:
       - uses: actions/checkout@v4
 
@@ -25,21 +17,28 @@ jobs:
         with:
           go-version: "1.23"
 
-      - name: Build
-        env:
-          CGO_ENABLED: "0"
-          GOOS: linux
-          GOARCH: ${{ matrix.goarch }}
+      # Native arch: the tests run on the runner, so GOOS/GOARCH stay
+      # host-side here. Cross-compiling the test binary would make it
+      # unrunnable (exec format error).
+      - name: Vet and test
         run: |
           go vet ./...
           go test ./...
-          go build -trimpath -ldflags="-s -w" -o "${{ matrix.asset }}" .
 
-      - name: Checksum
-        run: sha256sum "${{ matrix.asset }}" > "${{ matrix.asset }}.sha256"
+      - name: Cross-compile
+        run: |
+          set -eux
+          for arch in amd64 arm64; do
+            CGO_ENABLED=0 GOOS=linux GOARCH="$arch" \
+              go build -trimpath -ldflags="-s -w" \
+              -o "doubao-dictate-linux-$arch" .
+            sha256sum "doubao-dictate-linux-$arch" > "doubao-dictate-linux-$arch.sha256"
+          done
 
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            ${{ matrix.asset }}
-            ${{ matrix.asset }}.sha256
+            doubao-dictate-linux-amd64
+            doubao-dictate-linux-amd64.sha256
+            doubao-dictate-linux-arm64
+            doubao-dictate-linux-arm64.sha256
