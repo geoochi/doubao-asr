@@ -52,7 +52,8 @@ sha="$(mktemp)"
 trap 'rm -f "$tmp" "$sha"' EXIT
 
 say "Downloading ${asset}…"
-curl -fL --progress-bar --retry 3 --connect-timeout 15 "${base}/${asset}" -o "$tmp" ||
+if [ -t 2 ]; then progress="--progress-bar"; else progress="-sS"; fi
+curl -fL $progress --retry 3 --connect-timeout 15 "${base}/${asset}" -o "$tmp" ||
   fail "download failed — see https://github.com/${REPO}/releases"
 
 if curl -fsL --retry 3 --connect-timeout 15 "${base}/${asset}.sha256" -o "$sha" 2>/dev/null; then
@@ -108,6 +109,13 @@ if command -v systemctl >/dev/null 2>&1; then
   systemctl --user daemon-reload || fail "systemctl --user daemon-reload failed"
   systemctl --user enable doubao-dictate >/dev/null 2>&1 || true
   systemctl --user restart doubao-dictate || say "warning: could not start the service"
+  # The socket appears a moment after the restart; wait for it so a status
+  # call straight after the install does not race the daemon.
+  sock="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/doubao-dictate.sock"
+  for _ in $(seq 1 20); do
+    [ -S "$sock" ] && break
+    sleep 0.1
+  done
   say "Service doubao-dictate: $(systemctl --user is-active doubao-dictate 2>/dev/null || echo unknown)"
 else
   say "warning: systemctl not found; start it manually with: doubao-dictate daemon"
