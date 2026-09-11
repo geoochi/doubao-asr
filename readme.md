@@ -10,7 +10,39 @@
 
 > ⚠️ 密钥只放在 `~/.config/doubao-dictate/.env`(建议 `chmod 600`),**不要提交到仓库**。
 
-## 第一次使用(从零安装)
+## 一键安装(推荐)
+
+不用装 Go,直接从 GitHub Release 下载预编译二进制并完成配置:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/geoochi/doubao-asr/main/install.sh | bash
+```
+
+脚本会(全部是用户级操作,**不需要 sudo**):
+
+1. 按架构下载 `doubao-dictate`(linux amd64 / arm64)到 `~/.local/bin/`,并校验 SHA256;
+2. 首次安装时创建 `~/.config/doubao-dictate/.env`(已存在则原样保留);
+3. 写入并启动 systemd 用户服务 `doubao-dictate`;
+4. 往 `~/.config/hypr/bindings.lua` 追加 `F9` 热键(已存在则跳过)并 `hyprctl reload`。
+
+可以重复执行(幂等),升级时再跑一次即可。装完只剩一步:**填 API Key**。
+
+```bash
+$EDITOR ~/.config/doubao-dictate/.env     # 填 DOUBAO_API_KEY
+systemctl --user restart doubao-dictate
+```
+
+拿到 Key 的方式见下面「获取 API Key」。然后按 `F9` 说一句、再按一次,文字就出来了。
+
+> 卸载:`systemctl --user disable --now doubao-dictate`,删除
+> `~/.local/bin/doubao-dictate`、`~/.config/doubao-dictate/`、
+> `~/.config/systemd/user/doubao-dictate.service`,以及 `bindings.lua` 里那段
+> `doubao-dictate (managed by install.sh)` 的绑定,最后 `hyprctl reload`。
+
+## 从源码安装
+
+想自己编译、或不想用上面的脚本时,按下面的步骤来。
+
 
 ### 0. 前置依赖
 
