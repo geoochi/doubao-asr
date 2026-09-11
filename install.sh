@@ -142,7 +142,66 @@ EOF
   fi
 fi
 
+# ---- 5. API key ---------------------------------------------------------
+key_ready=0
+if grep -qE '^[[:space:]]*DOUBAO_API_KEY=.+' "$ENV_FILE" 2>/dev/null; then
+  say "API key already configured"
+  key_ready=1
+else
+  # stdin is the script itself when piped through curl, so the prompt must go
+  # through the terminal. /dev/tty can exist yet be unusable (no controlling
+  # terminal), and a plain write there would abort the script under set -e,
+  # so probe it by actually opening it.
+  have_tty=0
+  if { exec 3<>/dev/tty; } 2>/dev/null; then have_tty=1; fi
+
+  key=""
+  if [ "$have_tty" -eq 1 ]; then
+    say ""
+    say "Get an API key from the Doubao speech console:"
+    say "  1. open https://console.volcengine.com/speech/"
+    say "  2. activate 「流式语音识别」, then create an API key under 应用管理"
+    if command -v xdg-open >/dev/null 2>&1 &&
+      { [ -n "${WAYLAND_DISPLAY:-}" ] || [ -n "${DISPLAY:-}" ]; }; then
+      (xdg-open "https://console.volcengine.com/speech/" >/dev/null 2>&1 &) || true
+      say "  (opened that page in your browser)"
+    fi
+
+    printf 'Paste your Doubao API key (leave empty to skip): ' >&3
+    IFS= read -r -s key <&3 || key=""
+    printf '\n' >&3
+  else
+    say ""
+    say "No terminal available to prompt on (unattended install)."
+    say "Get an API key at https://console.volcengine.com/speech/"
+  fi
+  exec 3<&- 3>&- 2>/dev/null || true
+
+  # API keys are UUID-shaped; drop anything that is not safe in a .env value.
+  key="$(printf '%s' "$key" | tr -d '[:space:]' | tr -cd 'A-Za-z0-9._-')"
+  if [ -n "$key" ]; then
+    tmp_env="$(mktemp)"
+    awk -v k="$key" '
+      /^[[:space:]]*DOUBAO_API_KEY=/ { print "DOUBAO_API_KEY=" k; found = 1; next }
+      { print }
+      END { if (!found) print "DOUBAO_API_KEY=" k }
+    ' "$ENV_FILE" > "$tmp_env"
+    install -m 600 "$tmp_env" "$ENV_FILE"
+    rm -f "$tmp_env"
+    say "Saved the key to ${ENV_FILE}"
+    systemctl --user restart doubao-dictate >/dev/null 2>&1 || true
+    say "Restarted doubao-dictate"
+    key_ready=1
+  elif [ "$have_tty" -eq 1 ]; then
+    say "Skipped — add it later with: \$EDITOR ${ENV_FILE}"
+  fi
+fi
+
 say ""
-say "Done. Next: put your API key in ${ENV_FILE}, then"
-say "  systemctl --user restart doubao-dictate"
-say "and press F9 to dictate."
+if [ "$key_ready" -eq 1 ]; then
+  say "Done. Press F9 to start and stop dictation."
+else
+  say "Installed, but no API key yet. Add it and restart:"
+  say "  \$EDITOR ${ENV_FILE}"
+  say "  systemctl --user restart doubao-dictate"
+fi

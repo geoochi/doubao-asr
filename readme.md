@@ -23,16 +23,21 @@ curl -fsSL https://raw.githubusercontent.com/geoochi/doubao-asr/main/install.sh 
 1. 按架构下载 `doubao-dictate`(linux amd64 / arm64)到 `~/.local/bin/`,并校验 SHA256;
 2. 首次安装时创建 `~/.config/doubao-dictate/.env`(已存在则原样保留);
 3. 写入并启动 systemd 用户服务 `doubao-dictate`;
-4. 往 `~/.config/hypr/bindings.lua` 追加 `F9` 热键(已存在则跳过)并 `hyprctl reload`。
+4. 往 `~/.config/hypr/bindings.lua` 追加 `F9` 热键(已存在则跳过)并 `hyprctl reload`;
+5. 打印控制台地址(有图形会话时顺手用浏览器打开),然后在**终端里等你粘贴 API Key**,
+   写进 `.env`(0600)并自动重启服务。
 
-可以重复执行(幂等),升级时再跑一次即可。装完只剩一步:**填 API Key**。
+可以重复执行(幂等),升级时再跑一次即可。`.env` 里已经有 Key 时第 5 步会直接跳过;
+非交互环境(没有终端)会跳过询问并提示你手动填。
+
+装完后按 `F9` 说一句、再按一次,文字就出来了。如果第 5 步跳过了,手动补:
 
 ```bash
 $EDITOR ~/.config/doubao-dictate/.env     # 填 DOUBAO_API_KEY
 systemctl --user restart doubao-dictate
 ```
 
-拿到 Key 的方式见下面「获取 API Key」。然后按 `F9` 说一句、再按一次,文字就出来了。
+拿到 Key 的方式见下面「获取 API Key」。
 
 > 卸载:`systemctl --user disable --now doubao-dictate`,删除
 > `~/.local/bin/doubao-dictate`、`~/.config/doubao-dictate/`、
